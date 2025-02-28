@@ -10,9 +10,9 @@
 - api文档<https://ai.animedb.cn/docs/#/introduction>
 
 # 使用帮助
-- `/anime帮助` 查看帮助
-- `/anime识别` [图片]` 进行角色识别
-- `/anime模型` 进行模型切换
+- `/anime帮助` ---查看帮助
+- `/anime识别` [图片] ---进行角色识别
+- `/anime模型` ---进行模型切换
 
 
 
