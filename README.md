@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![:name](https://count.getloli.com/@anime_trace?name=anime_trace&theme=booru-jaypee&padding=7&offset=-5&align=top&scale=1&pixelated=1&darkmode=auto&num=1)
+![:name](https://count.getloli.com/@anime_trace?name=anime_trace&theme=booru-jaypee&padding=7&offset=-5&align=top&scale=1&pixelated=1&darkmode=auto&num=0)
 
 </div>
 
