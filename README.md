@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![:name](https://count.getloli.com/@rikkasaiko?name=rikkasaiko&theme=capoo-2&padding=10&offset=0&align=center&scale=1&pixelated=1&darkmode=auto)
+![:name](https://count.getloli.com/@anime_trace?name=anime_trace&theme=booru-jaypee&padding=7&offset=-5&align=top&scale=1&pixelated=1&darkmode=auto&num=1)
 
 </div>
 
@@ -10,9 +10,9 @@
 - api文档<https://ai.animedb.cn/docs/#/introduction>
 
 # 使用帮助
-`/anime帮助` 查看帮助
-`/anime识别` [图片]` 进行角色识别
-`/anime模型` 进行模型切换
+- `/anime帮助` 查看帮助
+- `/anime识别` [图片]` 进行角色识别
+- `/anime模型` 进行模型切换
 
 
 
