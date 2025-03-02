@@ -32,10 +32,40 @@ class AnimeTracePlugin(Star):
         pass
         
     @anime.command("帮助")
-    async def show_help(self, event: AstrMessageEvent):
-        '''显示插件帮助信息'''
-        yield event.plain_result("📖 动漫角色识别帮助：\n/anime 识图 + [图片] ----发送图片进行角色识别\n/anime 模型 <pre_stable, anime_model_lovelive, anime> ----设置默认识别模型\n/anime ai [1/2] ----设置ai\n/anime num [1-10] ----设置显示匹配角色数量")
+    async def set_help(self, event: AstrMessageEvent):
+        """显示动漫角色识别插件的完整帮助信息"""
+        help_text = """
+        📘 动漫角色识别插件帮助
+
+        🔍 主要功能:
+        /anime 识图+[图片]  -- 识别图片中的动漫角色
+
+        ⚙️ 设置选项:
+        1. 设置默认识别模型:
+        /anime 模型 <模型名称>
+        可用模型: 
+        [1] pre_stable (默认)
+        [2] anime_model_lovelive
+        [3] anime
+        [4] full_game_model_kira
+
+        2. 设置AI模式:
+        /anime ai [1/2]
+        1: 开启 (默认) | 2: 关闭
+
+        3. 设置显示匹配角色数量:
+        /anime num [1-10]
+        默认显示前3个匹配结果
         
+        📊模型介绍:
+        [1] pre_stable: 适用于(同人,原画)等
+        [2] anime_model_lovelive: 适用于各种场景
+        [3] anime: 适用于动漫原画
+        [4] full_game_model_kira: 适用于galgame
+        """
+        yield event.plain_result(help_text.strip())
+
+
     @anime.command("num")
     async def set_num(self, event: AstrMessageEvent, num: int):
         '''设置显示匹配角色数量'''
@@ -89,8 +119,9 @@ class AnimeTracePlugin(Star):
         '''设置默认识别模型'''
         available_models = ["pre_stable", "anime_model_lovelive", "anime","full_game_model_kira"]
         if model_name not in available_models:
-            yield event.plain_result(f"❌ 无效模型，可选：{'| '.join(available_models)}")
-            logger.error(f"无效模型：{model_name}")
+            labeled_models = [f'[{i+1}] {model}' for i, model in enumerate(available_models)] # 添加了数字标签
+            available_models_str = '\n'.join(labeled_models) # 用带有标签的模型字符串列表生成最终字符串
+            yield event.plain_result(f"❌ 无效模型，可选：\n{available_models_str}")
             return
         
         if model_name == self.config["model"]:
