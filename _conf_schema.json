@@ -1,7 +1,18 @@
 {
-    "default_model":{
+    "model":{
         "type": "string",
-        "default": "pre_stable"
-
+        "description": "默认模型设置",
+        "default": "pre_stable",
+        "options": ["pre_stable", "anime_model_lovelive", "anime"]
+    },
+    "num": {
+        "type": "int",
+        "description": "默认返回匹配角色的数量",
+        "default": 3
+    },
+    "ai": {
+        "type": "int",
+        "description": "是否启用AI检测, 1开 2关",
+        "default": 1
     }
 }
