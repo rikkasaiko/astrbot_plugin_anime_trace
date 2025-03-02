@@ -87,14 +87,18 @@ class AnimeTracePlugin(Star):
     @anime.command("模型")
     async def set_model(self, event: AstrMessageEvent, model_name: str):
         '''设置默认识别模型'''
-        available_models = ["pre_stable", "anime_model_lovelive", "anime"]
+        available_models = ["pre_stable", "anime_model_lovelive", "anime","full_game_model_kira"]
         if model_name not in available_models:
-            yield event.plain_result(f"❌ 无效模型，可选：{', '.join(available_models)}")
+            yield event.plain_result(f"❌ 无效模型，可选：{'| '.join(available_models)}")
             logger.error(f"无效模型：{model_name}")
             return
-            
+        
+        if model_name == self.config["model"]:
+            yield event.plain_result(f"❌ 默认模型已经是：{model_name}")
+            return
         self.config["model"] = model_name
         yield event.plain_result(f"✅ 已切换默认模型为：{model_name}")
+        print(self.config)
 
     async def extract_image_data(self, event: AstrMessageEvent) -> Optional[dict]:
         '''从消息中提取图片数据'''
@@ -175,15 +179,10 @@ class AnimeTracePlugin(Star):
 
     def handle_api_error(self, result: dict, event: AstrMessageEvent):
         '''处理API错误'''
-        error_map = {
-            17701: "图片大小超过5MB限制",
-            17705: "仅支持JPEG/PNG格式",
-            17731: "服务器繁忙，请稍后再试"
-        }
         
-        msg = error_map.get(result["code"], "识别服务暂时不可用")
-        logger.error(f"API错误：{msg}（代码：{result}")
-        return event.plain_result(f"❌ 错误：{msg}（代码：{result['code']}）")
+        msg = result['zh_message']
+        logger.error(f"API错误：{msg}（code：{result}")
+        return event.plain_result(f"❌ 错误：{msg}（code：{result['code']}）")
     
     
 

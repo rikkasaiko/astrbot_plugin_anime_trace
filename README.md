@@ -18,7 +18,8 @@
 - 模型可选: `pre_stable`, `anime_model_lovelive`, `anime`
 - 模型`anime_model_lovelive`高级动画识别模型①---->**适用于(同人,原画)等**
 - 模型`pre_stable`高级动画识别模型②---->**适用于各种场景**
-- 模型`anime`普通动画识别模型---->**适用于动漫原画等**
+- 模型`anime`普通动画识别模型---->**适用于动漫原画**
+- 模型`full_game_model_kira`---->**适用于galgame**
 
 # LLM函数调用
 
