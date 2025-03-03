@@ -140,16 +140,25 @@ class AnimeTracePlugin(Star):
                 if component.url.startswith("http"):
                     return {"url": component.url}
                 else:
+                    print(component.file)
                     return {"file": component.file}
-        
         # 处理文字中的URL或base64
-        
         text = event.message_str.strip()
+        
         if text.startswith("http"):
+            print(text)
             return {"url": text}
+        elif text.startswith("https"):
+            print(text)
+            return {"url": text}
+        # Extract URL from text if present
+        elif "http://" in text or "https://" in text:
+            url = text[text.find("http"):].split()[0]
+            print(url)
+            return {"url": url}
         elif len(text) > 100:  # 简单判断base64
             return {"base64": text}
-        
+            
         return None
 
     async def call_animetrace_api(self, image_data: dict) -> dict:
@@ -183,17 +192,13 @@ class AnimeTracePlugin(Star):
         if not characters:
             logger.info(f"{results}")
             return event.plain_result("🔍 未识别到匹配角色")
-        
-        
         # 只显示前3个匹配结果
         top_characters = characters[:num]
-        
         # 构建消息链
         chains = [
             Image.fromURL(self.img['url']),
             Plain("🎯 角色识别结果：\n") 
         ]
-        
         # 添加每个匹配的角色信息
         for idx, char in enumerate(top_characters, 1):
             chains.append(Plain(
@@ -220,25 +225,27 @@ class AnimeTracePlugin(Star):
 
     @llm_tool(name="search_anime")
     async def search_anime_tool(self, event: AstrMessageEvent):
-        '''根据用户希望识别图片角色时调用此工具
-        '''
-        
-        image_data = await self.extract_image_data(event)
-        self.img = image_data
-        
-        if not image_data:
-            
-            return
-
-        # 调用API
+        '''根据用户要求是否需要识别图片中的动漫角色
+        ''' 
         try:
+            image_data = await self.extract_image_data(event)
+            
+            if not image_data:
+                
+                yield event.plain_result("未找到有效的图片数据")
+                return
+                
+            self.img = image_data
             result = await self.call_animetrace_api(image_data)
+            print(result)
+            
             if result["code"] not in [0, 17731]:
-                # 修改这行，传入event参数
                 yield self.handle_api_error(result, event)
                 return
+            yield self.format_results(result["data"], event)
         except Exception as e:
-            logger.error(f"API调用失败: {str(e)}")
-            
-        
-      
+            error_msg = f"API调用失败: {str(e)}"
+            logger.error(error_msg)
+            return
+
+

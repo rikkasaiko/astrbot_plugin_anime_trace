@@ -3,7 +3,7 @@
         "type": "string",
         "description": "默认模型设置",
         "default": "pre_stable",
-        "options": ["pre_stable", "anime_model_lovelive", "anime"]
+        "options": ["pre_stable", "anime_model_lovelive", "anime","full_game_model_kira"]
     },
     "num": {
         "type": "int",
