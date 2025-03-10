@@ -2,6 +2,8 @@ from astrbot.api.all import *
 from astrbot.api.message_components import Image as BotImage
 import requests
 import logging
+import re
+import os
 from typing import Optional
 from astrbot.api.message_components import *
 from astrbot.core.message.components import Image, Plain
@@ -34,26 +36,30 @@ class AnimeTracePlugin(Star):
     @anime.command("帮助")
     async def set_help(self, event: AstrMessageEvent):
         """显示动漫角色识别插件的完整帮助信息"""
+        ai_o = {1: "开启", 2: "关闭"}
+        ai = ai_o[self.ai]
         help_text = """
-        📘 动漫角色识别插件帮助
-
-        🔍 主要功能:
-        /anime 识图+[图片]  -- 识别图片中的动漫角色
-
-        ⚙️ 设置选项:
-        1. 设置默认识别模型:
+        📋动漫角色识别插件帮助信息:
+        🌐当前模型: {model}
+        📊显示匹配角色数量: {num}
+        🤖AI模式: {ai} 
+        
+        📋使用方法:
+        /anime 识图+[图片] -- 识别图片中的动漫角色
+        
+        ①设置默认识别模型:
         /anime 模型 <模型名称>
-        可用模型: 
+        可用模型:
         [1] pre_stable (默认)
         [2] anime_model_lovelive
         [3] anime
         [4] full_game_model_kira
 
-        2. 设置AI模式:
+        ②设置AI模式:
         /anime ai [1/2]
         1: 开启 (默认) | 2: 关闭
 
-        3. 设置显示匹配角色数量:
+        ③设置显示匹配角色数量:
         /anime num [1-10]
         默认显示前3个匹配结果
         
@@ -62,8 +68,9 @@ class AnimeTracePlugin(Star):
         [2] anime_model_lovelive: 适用于各种场景
         [3] anime: 适用于动漫原画
         [4] full_game_model_kira: 适用于galgame
-        """
+        """.format(model=self.model, num=self.num, ai=ai)
         yield event.plain_result(help_text.strip())
+        
 
 
     @anime.command("num")
@@ -75,6 +82,7 @@ class AnimeTracePlugin(Star):
             return
         self.config["num"] = num
         yield event.plain_result(f"✅ 已设置显示匹配角色数量为: {num}")
+        self.config.save_config()
         
     @anime.command("ai")
     async def set_ai(self, event: AstrMessageEvent, ai: int):
@@ -86,6 +94,7 @@ class AnimeTracePlugin(Star):
             return
         self.config["ai"] = ai
         yield event.plain_result(f"✅ 已切换ai为: {aion[ai]},")
+        self.config.save_config()
         
     
 
@@ -96,7 +105,6 @@ class AnimeTracePlugin(Star):
         # 获取图片数据
         image_data = await self.extract_image_data(event)
         self.img = image_data
-        
         if not image_data:
             yield event.plain_result("❌ 未检测到有效图片")
             return
@@ -129,39 +137,39 @@ class AnimeTracePlugin(Star):
             return
         self.config["model"] = model_name
         yield event.plain_result(f"✅ 已切换默认模型为：{model_name}")
-        print(self.config)
+        self.config.save_config()
+        
 
     async def extract_image_data(self, event: AstrMessageEvent) -> Optional[dict]:
         '''从消息中提取图片数据'''
         # 优先处理直接上传的图片
         for component in event.message_obj.message:
-            logger.info(f"{component}")
             if isinstance(component, Image):
-                if component.url.startswith("http"):
-                    return {"url": component.url}
-                else:
-                    print(component.file)
+                # 修改判断逻辑：明确区分本地文件和网络图片
+                if hasattr(component, 'file') and os.path.exists(component.file):
+                    print(f"本地文件路径: {component.file}")
                     return {"file": component.file}
-        # 处理文字中的URL或base64
-        text = event.message_str.strip()
+                elif hasattr(component, 'url'):
+                    if event.get_platform_name() == "qq_official_webhook":
+                        
+                        return {"url": component.file}
+                    else:
+                    
+                        return {"url": component.url}
         
-        if text.startswith("http"):
-            print(text)
-            return {"url": text}
-        elif text.startswith("https"):
-            print(text)
-            return {"url": text}
-        # Extract URL from text if present
-        elif "http://" in text or "https://" in text:
-            url = text[text.find("http"):].split()[0]
-            print(url)
-            return {"url": url}
-        elif len(text) > 100:  # 简单判断base64
+        # 修改URL提取逻辑：使用正则匹配
+        text = event.message_str.strip()
+        url_match = re.search(r'https?://\S+', text)
+        if url_match:
+            return {"url": url_match.group()}
+        
+        # 增加base64格式验证
+        if len(text) > 100 and re.match(r'^[A-Za-z0-9+/]+={0,2}$', text):
             return {"base64": text}
             
         return None
 
-    async def call_animetrace_api(self, image_data: dict) -> dict:
+    async def call_animetrace_api(self, image_data: str):
         '''调用识别API'''
         ai = self.config["ai"]
         payload = {
@@ -169,15 +177,25 @@ class AnimeTracePlugin(Star):
             "model": self.config["model"],
             "ai_detect": ai
         }
-        
+       
         # 处理不同输入类型
         if "file" in image_data:
-            files = {"file": open(image_data["file"], "rb")}
-            response = requests.post(self.API_URL, data=payload, files=files)
-        else:
+            # 增加文件存在性检查
+            if not os.path.exists(image_data["file"]):
+                print(f"本地文件不存在: {image_data['file']}")
+                raise FileNotFoundError(f"本地文件不存在: {image_data['file']}")
+                
+            with open(image_data["file"], "rb") as f:
+                files = {"file": f}
+                response = requests.post(self.API_URL, data=payload, files=files)
+                
+        elif "url" in image_data:
             payload.update(image_data)
+            response = requests.post(self.API_URL, json=payload)        
+        else:
+            print(f"base64格式图片: {image_data['base64']}")
             response = requests.post(self.API_URL, json=payload)
-        
+
         return response.json()
 
     def format_results(self, results: list, event: AstrMessageEvent):
