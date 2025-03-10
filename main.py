@@ -13,7 +13,7 @@ from astrbot.core.message.components import Image, Plain
 # 配置日志
 logger = logging.getLogger(__name__)
 
-@register("animedb api的动漫识别插件", "rikka", "anime_trace", "1.0.0")
+@register("animedb api的动漫识别插件", "rikka", "anime_trace", "2.0.0")
 class AnimeTracePlugin(Star):
     
     API_URL = "https://api.animetrace.com/v1/search"
