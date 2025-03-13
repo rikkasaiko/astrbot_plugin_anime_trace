@@ -6,6 +6,8 @@
 
 </div>
 
+# 目前只支持aiohttp
+
 # 使用animedb api进行动漫角色识别
 - api文档<https://ai.animedb.cn/docs/#/introduction>
 
