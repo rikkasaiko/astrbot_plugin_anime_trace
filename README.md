@@ -6,7 +6,7 @@
 
 </div>
 
-# 目前只支持aiohttp
+# 目前只支持aiohttp以及qq_office
 
 # 使用animedb api进行动漫角色识别
 - api文档<https://ai.animedb.cn/docs/#/introduction>
